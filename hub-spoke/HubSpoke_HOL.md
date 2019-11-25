@@ -36,21 +36,21 @@ You will need to install Teraform to use the Terraform CLI to create resources i
 
 - Go to the Terraform [website](https://www.terraform.io/)
 
-![](media/image2)
+![](media/image2.png)
 
 - Click the link for your computer's operating system.
 
-![](media/image3)
+![](media/image3.png)
 
 - Open up a new Finder window and go to the “Downloads” folder. Verify that a zip file starting with “terraform…” is there.
 
-![](media/image4)
+![](media/image4.png)
 
 ### **STEP 2**: Install Terraform
 
 - Copy the zip file from the “Downloads” folder. Create a new folder in your User folder called “Terraform”. Paste the zip file in this new folder and unzip it. A new executable file called “terraform” should appear.
 
-![](media/image5)
+![](media/image5.png)
 
 - Open a new Terminal window. Open the _.bash_profile_ file by typing the following:
 
@@ -60,7 +60,7 @@ You will need to install Teraform to use the Terraform CLI to create resources i
 
   This command should open the file in your computer’s default text editor. Add the line shown below to the file, substituting the user _crlamb_ for your own username.
 
-  ![](media/image6)
+  ![](media/image6.png)
 
   Save and close the file. Enter the following command in the terminal:
 
@@ -76,7 +76,7 @@ You will need to install Teraform to use the Terraform CLI to create resources i
 
   The result should look like this:
 
-  ![](media/image7)
+  ![](media/image7.png)
 
 ### **STEP 3**: Install Oracle Cloud Infrastructure CLI
 
@@ -92,7 +92,7 @@ You will need to install Teraform to use the Terraform CLI to create resources i
 
   When prompted to upgrade the CLI to the newest version, respond with Y to overwrite an existing installation. When prompted to update your PATH, respond with Y to be able to invoke the CLI without providing the full path to the executable. This will add _oci.exe_ to your PATH. Respond with Y with any other prompts the installation script may present.
 
-  ![](media/image8)
+  ![](media/image8.png)
 
   Your terminal window should look like the above screenshot after a successful installation.
 
@@ -108,23 +108,23 @@ You will need to install Teraform to use the Terraform CLI to create resources i
 
 - Enter the user's OCID. You can find the user's OCID in the Console on the page showing the user's details. To get to that page, open the **Profile** menu and click your username. Make a note of the user OCID. You will need it in a future step.
 
-  ![](media/image9)
+  ![](media/image9.png)
 
-  ![](media/image10)
+  ![](media/image10.png)
 
 - Enter the tenancy OCID. It can be found from the **Profile** menu by clicking on the tenancy name. Make a note of the tenancy OCID. You will need it in a future step.
 
-  ![](media/image11)
+  ![](media/image11.png)
 
-  ![](media/image12)
+  ![](media/image12.png)
 
 - Enter the home region of your tenancy in the format specified. You can find the tenancy’s home region on the **Tenancy Information** page. Make a note of this region. You will need it in a future step.
 
-  ![](media/image13)
+  ![](media/image13.png)
 
 - Generate a new RSA key pair. Use the default location and names for the key pair. Leave the passphrase for the private key empty.
 
-  ![](media/image14)
+  ![](media/image14.png)
 
   The config file is now set up.
 
