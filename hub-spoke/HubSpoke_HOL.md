@@ -30,7 +30,7 @@ In this lab, we will install Terraform on your machine, install the Oracle Cloud
 
 # Install Terraform on your local machine
 
-You will need to install Teraform to use the Terraform CLI to create resources in OCI.
+You will need to install Terraform to use the Terraform CLI to create resources in OCI.
 
 ### **STEP 1**: Download Terraform
 
@@ -42,13 +42,13 @@ You will need to install Teraform to use the Terraform CLI to create resources i
 
 ![](media/image3.png)
 
-- Open up a new Finder window and go to the “Downloads” folder. Verify that a zip file starting with “terraform…” is there.
+- Open up a new Finder window and go to the *Downloads* folder. Verify that a zip file starting with “terraform…” is there.
 
 ![](media/image4.png)
 
 ### **STEP 2**: Install Terraform
 
-- Copy the zip file from the “Downloads” folder. Create a new folder in your User folder called “Terraform”. Paste the zip file in this new folder and unzip it. A new executable file called “terraform” should appear.
+- Copy the zip file from the *Downloads* folder. Create a new folder in your *User* folder called *Terraform*. Paste the zip file in this new folder and unzip it. A new executable file called *terraform* should appear.
 
 ![](media/image5.png)
 
@@ -129,3 +129,51 @@ You will need to install Teraform to use the Terraform CLI to create resources i
   The config file is now set up.
 
 ### **STEP 5**: Create a compartment
+
+Compartments are used to isolate resources within your OCI tenant. User-based access policies can be applied to manage access to compute instances and other resources within a Compartment.
+
+- Click the **hamburger icon** in the upper left corner to open the navigation menu. Under the **Identity** section of the menu, click **Compartments**
+
+  ![](media/image15.png)
+
+- Click **Create Compartment**
+
+  ![](media/image16.png)
+
+- In the **Name** field, enter any name you want. For this example we will be using the name *hub-spoke* going forward. Enter a **Description** of your choice. Click **Create Compartment**.
+
+  ![](media/image17.png)
+
+- In a moment, your new compartment will show up in the list.
+
+  ![](media/image18.png)
+
+- When the compartment appears in the list, click on it to go to the **Compartment Information** page. Copy the **Compartment OCID** somewhere. You will need it in a future step.
+
+  ![](media/image19.png)
+
+### **STEP 6**: Add an API Key
+
+When you set up the config file, you generated an RSA key pair. This key pair allows you to use APIs to access and create resources in OCI, but first you must add the public key to your user in the **Console** on your **User Information** page.
+
+- Navigate to your **User Information** page in the **OCI Console** and select **Add Public Key** toward the bottom of the page.  
+
+  ![](media/image20.png)
+
+- From the terminal, run the following command, but substitute “crlamb” for the name of your user directory:
+
+  ```
+  cat ~/.oci/oci_api_key_public.pem
+  ```
+
+  Copy and paste the result in the **Add Public Key** window. Click **Add**.
+
+  ![](media/image21.png)
+
+  ![](media/image22.png)
+
+- Make a note of the fingerprint generated from this public key. You will need it in the next step.
+
+  ![](media/image23.png)
+
+### **STEP 7**: Initialize Terraform
