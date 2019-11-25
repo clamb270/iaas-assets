@@ -10,7 +10,7 @@
 
 [Required Artifacts](#required-artifacts)
 
-[Practice 1: Install Terraform on your local machine](#practice-1-install-terraform-on-your-local-machine)
+[Practice 1: Set up OCI CLI and Terraform CLI](#practice-1-set-up-oci-cli-and-terraform-cli)
 
 [Practice 2: Create a VCN with Terraform](#practice-2-create-a-vcn-with-terraform)
 
