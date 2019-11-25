@@ -4,6 +4,18 @@
 
 [Overview](#overview)
 
+[Introduction](#introduction)
+
+[Objectives](#objectives)
+
+[Required Artifacts](#required-artifacts)
+
+[Practice 1: Install Terraform on your local machine](#practice-1-install-terraform-on-your-local-machine)
+
+[Practice 2: Create a VCN with Terraform](#practice-2-create-a-vcn-with-terraform)
+
+[Practice 3: Set up OCI CLI for new region](#practice-3-set-up-oci-cli-for-new-region)
+
 ## Overview
 
 This architecture shows how to implement a hub-spoke network topology in OCI. The hub is a virtual cloud network (VCN) that is connected to your on-premises network, and the spokes are VCNs that peer with the hub and allow you to isolate workloads. This architecture also demonstrates how to include shared services in the hub that the spokes can then use. You can connect your hub VCN and on-premises network via a VPN connection or Oracle FastConnect.
@@ -28,7 +40,7 @@ In this lab, we will install Terraform on your machine, install the Oracle Cloud
 - Access to an OCI tenancy
 - IntelliJ IDEA from JetBrains. The community version of this IDE can be downloaded [here](https://www.jetbrains.com/idea/).
 
-# Install Terraform on your local machine
+# Practice-1: Set up OCI CLI and Terraform CLI
 
 You will need to install Terraform to use the Terraform CLI to create resources in OCI.
 
@@ -177,3 +189,59 @@ When you set up the config file, you generated an RSA key pair. This key pair al
   ![](media/image23.png)
 
 ### **STEP 7**: Initialize Terraform
+
+This is the last step before you will be able to use Terraform to create resources in OCI.
+
+- From the terminal, create a new directory under the home directory. Call it *hub-spoke*. Switch into that directory (e.g., `cd hub-spoke`)
+
+  ![](media/image24.png)
+
+- Run the command `idea .`. This will open the working directory in IntelliJ, where you will be able to add files to the directory without using the command line.
+
+  ![](media/image25.png)
+
+  ![](media/image26.png)
+
+- Right click on the name of the directory in the top left corner and select **New --> File**. Name the file *connection.tf*. Click **Ok**.
+
+  ![](media/image27.png)
+
+- Add the following code to the file *connection.tf*, then fill in your specific values:
+
+  ![](media/image28.png)
+
+  Save the file.
+
+- Back in the terminal, enter the command `terraform init`. This command installs the plugins necessary for Terraform to work with the provider you specified in the previous step. If you entered everything correctly, the command should leave the terminal looking like the following:
+
+  ![](media/image29.png)
+
+# Practice-2: Create a VCN with Terraform
+
+### **STEP 1**: Create the hub VCN in Terraform
+
+Now we are going to create a VCN in your OCI compartment using Terraform!
+
+- Create a new file in IntelliJ. Call it *networks.tf*.
+
+  ![](media/image30.png)
+
+- Enter the following code in the *networks.tf* file:
+
+  ![](media/image31.png)
+
+  Make sure you enter the OCID of your compartment. Save the file.
+
+- In the terminal, enter the command `terraform validate`. This command ensures that all resource blocks are formatted correctly and contain valid values for their arguments. If you entered everything correctly, you should get a success message when the command executes.
+
+  ![](media/image32.png)
+
+- Enter the command `terraform apply`. When prompted, enter *yes*. Terraform will begin provisioning the new VCN you specified. You should get a success message as follows:
+
+  ![](media/image33.png)
+
+- Confirm the VCN was created by finding it in the **Console**.
+
+  ![](media/image34.png)
+
+# Practice-3: Set up OCI CLI for new region
