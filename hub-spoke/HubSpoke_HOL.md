@@ -24,6 +24,8 @@
 
 [Practice 7: Add local peering gateways to the hub and spokes](#practice-7-add-local-peering-gateways-to-the-hub-and-spokes)
 
+[Practice 8: Add dynamic routing gateways to the hub and "on-prem" VCNs](#practice-8-add-dynamic-routing-gateways-to-the-hub-and-on-prem-vcns)
+
 ## Overview
 
 This architecture shows how to implement a hub-spoke network topology in OCI. The hub is a virtual cloud network (VCN) that is connected to your on-premises network, and the spokes are VCNs that peer with the hub and allow you to isolate workloads. This architecture also demonstrates how to include shared services in the hub that the spokes can then use. You can connect your hub VCN and on-premises network via a VPN connection or Oracle FastConnect.
@@ -381,7 +383,7 @@ For the purpose of this lab, the hub VCN will have two subnets and each spoke VC
 
 - In the terminal, run `echo “yes” | terraform apply` to create the subnets. Verify in the console that the subnets were created. To do so, go to the information page for each VCN and click **Subnets** on the left. A subnet with the display name you specified should be present.
 
-  ![](media/image41)
+  ![](media/image41.png)
 
 ### **STEP 4**: Create the subnet in the "on-prem" VCN
 
@@ -390,3 +392,57 @@ For the purpose of this lab, the hub VCN will have two subnets and each spoke VC
   **NOTE**: You only need 1 subnet in the "on-prem" VCN
 
 # Practice-7: Add local peering gateways to the hub and spokes
+
+### **STEP 1**: Create a new file for local peering gateways
+
+- In the *hub-spoke* directory, create a new file called *lpg.tf*. This file will contain all code related to the local peering gateways in this architecture.
+
+### **STEP 2**: Add the local peering gateway for the first spoke
+
+- In the new file, copy and paste the code below:
+
+  ```
+  resource "oci_core_local_peering_gateway" "spoke1-lpg" {
+    compartment_id = “${oci_core_vcn.spoke1.compartment_id}”
+    vcn_id         = "${oci_core_vcn.spoke1.id}"
+
+    display_name = "spoke1_lpg"
+  }
+  ```
+
+  Here we can use interpolation for the compartment OCID because the compartment OCID is an attribute of the VCNs we created, and we already used the string literal to create the VCNs.
+
+### **STEP 3**: Add the LPG for the second spoke
+
+- Just below the code above, paste the code again but make the necessary changes to create an LPG for the second spoke.
+
+### **STEP 4**: Add the LPGs for the hub
+
+The hub requires an LPG for each spoke, so in our case it needs 2 LPGs: one for the first spoke and one for the second spoke. However, in order to peer the LPGs in the hub with those in the spokes, we need to actually create 2 more LPGs in the hub, one for each of the spokes.
+
+- Copy and paste the following code to add the LPG that peers the hub with the first spoke:
+
+  ```
+  resource "oci_core_local_peering_gateway" "hub_spoke1_lpg" {
+    compartment_id = "${oci_core_vcn.hub.compartment_id}"
+    vcn_id         = "${oci_core_vcn.hub.id}"
+
+    display_name = "hub_spoke1_lpg"
+
+    peer_id = "${oci_core_local_peering_gateway.spoke1-lpg.id}"
+  }
+  ```
+
+  Here, the *peer_id* argument represents the OCID of the local peering gateway this LPG would like to peer with. To peer with the first spoke, we need the ID of the LPG in *spoke1*.
+
+- Paste the code above below itself and make the necessary changes to add and peer the second LPG in the hub. Save the file.
+
+### **STEP 5**: Create the LPGs
+
+- In the terminal, run `echo “yes” | terraform apply`. In the **console**, verify the LPGs were created and peered with the appropriate LPG.
+
+  ![](media/image42.png)
+
+  ![](media/image43.png)
+
+# Practice-8: Add dynamic routing gateways to the hub and "on-prem" VCNs
