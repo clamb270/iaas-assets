@@ -27,3 +27,105 @@ In this lab, we will install Terraform on your machine, install the Oracle Cloud
 - If running from Windows: [Putty and PuttyGen](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
 - Access to an OCI tenancy
 - IntelliJ IDEA from JetBrains. The community version of this IDE can be downloaded [here](https://www.jetbrains.com/idea/).
+
+# Install Terraform on your local machine
+
+You will need to install Teraform to use the Terraform CLI to create resources in OCI.
+
+### **STEP 1**: Download Terraform
+
+- Go to the Terraform [website](https://www.terraform.io/)
+
+![](media/image2)
+
+- Click the link for your computer's operating system.
+
+![](media/image3)
+
+- Open up a new Finder window and go to the “Downloads” folder. Verify that a zip file starting with “terraform…” is there.
+
+![](media/image4)
+
+### **STEP 2**: Install Terraform
+
+- Copy the zip file from the “Downloads” folder. Create a new folder in your User folder called “Terraform”. Paste the zip file in this new folder and unzip it. A new executable file called “terraform” should appear.
+
+![](media/image5)
+
+- Open a new Terminal window. Open the _.bash_profile_ file by typing the following:
+
+  ```
+  open ~/.bash_profile
+  ```
+
+  This command should open the file in your computer’s default text editor. Add the line shown below to the file, substituting the user _crlamb_ for your own username.
+
+  ![](media/image6)
+
+  Save and close the file. Enter the following command in the terminal:
+
+  ```
+  source ~/.bash_profile
+  ```
+
+  Terraform now should be executable system-wide from any directory. Confirm that you can all the `terraform` command by typing the following in your terminal:
+
+  ```
+  terraform
+  ```
+
+  The result should look like this:
+
+  ![](media/image7)
+
+### **STEP 3**: Install Oracle Cloud Infrastructure CLI
+
+- In the terminal window, enter the following command:
+
+  ```
+  bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)"
+  ```
+
+  This command downloads and runs the OCI CLI installer script
+
+  **NOTE**: If you do not have a compatible version of Python installed, you must upgrade your computer’s version of Python. If you are a Mac user, the script will not install it for you. You can download the most recent version of Python [here](https://www.python.org/downloads/).
+
+  When prompted to upgrade the CLI to the newest version, respond with Y to overwrite an existing installation. When prompted to update your PATH, respond with Y to be able to invoke the CLI without providing the full path to the executable. This will add _oci.exe_ to your PATH. Respond with Y with any other prompts the installation script may present.
+
+  ![](media/image8)
+
+  Your terminal window should look like the above screenshot after a successful installation.
+
+### **STEP 4**: Set up the config file
+
+- Set up the config file with the following command:
+
+  ```
+  oci setup config
+  ```
+
+  **NOTE**: Use the default location for the config file.
+
+- Enter the user's OCID. You can find the user's OCID in the Console on the page showing the user's details. To get to that page, open the **Profile** menu and click your username. Make a note of the user OCID. You will need it in a future step.
+
+  ![](media/image9)
+
+  ![](media/image10)
+
+- Enter the tenancy OCID. It can be found from the **Profile** menu by clicking on the tenancy name. Make a note of the tenancy OCID. You will need it in a future step.
+
+  ![](media/image11)
+
+  ![](media/image12)
+
+- Enter the home region of your tenancy in the format specified. You can find the tenancy’s home region on the **Tenancy Information** page. Make a note of this region. You will need it in a future step.
+
+  ![](media/image13)
+
+- Generate a new RSA key pair. Use the default location and names for the key pair. Leave the passphrase for the private key empty.
+
+  ![](media/image14)
+
+  The config file is now set up.
+
+### **STEP 5**: Create a compartment
