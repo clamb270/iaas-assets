@@ -670,7 +670,7 @@ This network architecture requires each VCN to have multiple route tables in ord
 
   ![](media/image67.png)
 
-- 38.	Run the command `echo “yes” | terraform apply` to build the new route table. Verify that the route table was built in the OCI console.
+- Run the command `echo “yes” | terraform apply` to build the new route table. Verify that the route table was built in the OCI console.
 
   ![](media/image68.png)
 
@@ -678,7 +678,7 @@ This network architecture requires each VCN to have multiple route tables in ord
 
 ### **STEP 6**: Associate the new route table with the LPGs
 
-- 39.	Just like we did with the DRG, we have to specify in the LPG resources which route table we want to use. In the *lpg.tf* file, add a route table ID like you did for the DRG.
+- Just like we did with the DRG, we have to specify in the LPG resources which route table we want to use. In the *lpg.tf* file, add a route table ID like you did for the DRG.
 
   ![](media/image70.png)
 
@@ -695,3 +695,89 @@ This network architecture requires each VCN to have multiple route tables in ord
   ![](media/image73.png)
 
 # Practice-11: Add security rules to default security lists
+
+Similar to how each VCN is created with a default route table, each VCN is also created with a default security list. The security lists need rules in order to enable traffic in and out of the VCNs (or subnets more specifically). In this section, we will add security rules to each VCN’s default security list in order to enable SSH access to the compute instances we will create and to allow those instances to ping each other.
+
+### **STEP 1**: Create the default security list resources
+
+- The process here is very similar to that of creating default route tables in Terraform. In the *hub-spoke* directory, create a new file called *securitylist.tf*. Copy and paste the following code into the file:
+
+  ```
+  resource "oci_core_default_security_list" "hub_security_list" {
+    manage_default_resource_id = "${oci_core_vcn.hub_vcn.default_security_list_id}"
+  }
+  ```
+
+  Here, we are specifying that we want this default security list resource to pertain to the hub VCN’s default security list. Repeat this resource declaration and make the necessary changes for the spoke and “on-prem” VCNs. You will have to create a *securitylist.tf* file in the *hub-spoke/ashburn* directory.
+
+- Build the resources with the command `echo “yes” | terraform apply`.
+
+### **STEP 2**: Add the security rules to the security lists
+
+Security lists consist of two types of rules: egress rules and ingress rules. Egress rules affect traffic leaving a subnet, and ingress rules affect traffic coming into a subnet. Egress rules specify where traffic leaving a subnet can go, and ingress rules specify from where a subnet can receive traffic. Our security lists will only have one egress rule that enables traffic to be sent to any destination from our subnets. The four ingress rules our security list has contribute to enable SSH and ping capabilities.
+
+- Within the resource for the hub VCN’s default security list, add the following lines:
+
+  ```
+  egress_security_rules {
+    destination = "0.0.0.0/0"
+    protocol    = "all"
+    stateless   = false
+  }
+
+  ingress_security_rules {
+    protocol  = "1"
+    source    = "10.0.0.0/16"
+    stateless = false
+
+    icmp_options {
+      type = 3
+    }
+  }
+
+  ingress_security_rules {
+    protocol  = "6"
+    source    = "0.0.0.0/0"
+    stateless = false
+
+    tcp_options {
+      max = 22
+      min = 22
+    }
+  }
+
+  ingress_security_rules {
+    protocol = "1"
+    source   = "0.0.0.0/0"
+
+    icmp_options {
+      type = 3
+      code = 4
+    }
+  }
+
+  ingress_security_rules {
+    protocol = "1"
+    source = "0.0.0.0/0"
+
+    icmp_options {
+      type = 8
+    }
+  }
+  ```
+
+- Add those lines to the resources for the spoke VCNs’ default security lists. In the “on-prem” VCN’s default security list, add those lines, but for the first ingress rule listed, change the source to **192.168.0.0/16**
+
+  ![](media/image74.png)
+
+- Build the security lists with the command `echo “yes” | terraform apply`. Verify the security lists were changed in the OCI console.
+
+  ![](media/image75.png)
+
+  ![](media/image76.png)
+
+  ![](media/image77.png)
+
+  These screens should be consistent with those for the other VCNs as well.
+
+# Practice-12: Add compute instances to the VCNs 
