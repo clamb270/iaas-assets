@@ -845,4 +845,4 @@ Let’s look at the proposed figure at the start of the labs, which shows that t
 
   ![](media/image82.png)
 
-*Congratulations! You have successfully completed this lab!**
+*Congratulations! You have successfully completed this lab!*
