@@ -446,3 +446,89 @@ The hub requires an LPG for each spoke, so in our case it needs 2 LPGs: one for 
   ![](media/image43.png)
 
 # Practice-8: Add dynamic routing gateways to the hub and "on-prem" VCNs
+
+These dynamic routing gateways (DRGs) will allow us to create a remote peering connection (RPC) between the “on-prem” and hub VCNs in order to simulate an IPsec VPN connection. A remote peering connection is like local peering except that the two VCNs are in different regions.
+
+### **STEP 1**: Create a new file for the dynamic routing gateway
+
+- In the *hub-spoke* directory, create a new file called *drg.tf*.
+
+### **STEP 2**: Add a DRG to the file
+
+- In the new file, copy and paste the code below:
+
+  ```
+  resource "oci_core_drg" "hub_drg" {
+    compartment_id = "${oci_core_vcn.hub.compartment_id}"
+
+    display_name = "hub_drg"
+  }
+  ```
+
+### **STEP 3**: Attach the DRG to the hub VCN
+
+- After you create a DRG, it must be attached to a VCN in order for you to use it. To do so, copy and paste the following code below the code you just pasted into *drg.tf*:
+
+  ```
+  resource "oci_core_drg_attachment" "hub_drg_attachment" {
+    drg_id = "${oci_core_drg.hub_drg.id}"
+    vcn_id = "${oci_core_vcn.hub.id}"
+  }
+  ```
+
+  Here, we set the OCID of the DRG we just made to the *drg_id* argument and the OCID of the hub VCN to the *vcn_id* argument.
+
+### **STEP 4**: Create the hub DRG
+
+- In the terminal, run `echo “yes” | terraform apply`. Verify that the DRG was created in the console.
+
+  ![](media/image44.png)
+
+### **STEP 5**: Add, attach, and create the DRG in the "on-prem" VCN
+
+- Switch to the *hub-spoke/ashburn* directory. Repeat steps 1-4 in this directory, making the necessary changes to the arguments specific to the “on-prem” VCN.
+
+  ![](media/image45.png)
+
+### **STEP 6**: Create a remote peering connection between the two DRGs
+
+- Back in the *hub-spoke* directory, create a new file called *rpc.tf*. Add the following code:
+
+  ```
+  resource "oci_core_remote_peering_connection" "onprem_rpc" {
+    compartment_id = "${oci_core_drg.hub_drg.compartment_id}"
+    drg_id = "${oci_core_drg.hub_drg.id}"
+
+    peer_region_name = "us-ashburn-1"
+  }
+  ```
+
+  Save the file and run the command `echo “yes” | terraform apply` in the terminal. In the **console**, verify that the DRG has a pending remote peering connection.
+
+  ![](media/image46.png)
+
+  ![](media/image47.png)
+
+- In the **console**, copy the **OCID** of the RPC created in the previous actions. Click on the name of the RPC from the DRG info page, then click **Copy** next to the **OCID** of the RPC.
+
+  ![](media/image48.png)
+
+  ![](media/image49.png)
+
+- In the *hub-spoke/ashburn* directory, create a new file called *rpc.tf*. Copy and paste the code from step 6 into the file, substituting “us-phoenix-1” for the value of the region argument. Paste the following line underneath the argument *peer_region_name*, but substituting in the OCID you just copied:
+
+  ```
+  peer_id = "*<your_rpc_ocid>*"
+  ```
+
+  Your *hub-spoke/ashburn/rpc.tf* file should look like the following:
+
+  ![](media/image50.png)
+
+  Save the file and build the resource in Terraform with the command `echo “yes” | terraform apply`. The console should reflect the remote peering connection with both DRGs.
+
+  ![](media/image51.png)
+
+  ![](media/image52.png)
+
+# Practice-9: Add internet gateways to the VCNs
