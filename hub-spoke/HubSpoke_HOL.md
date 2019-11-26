@@ -32,6 +32,10 @@
 
 [Practice 11: Add security rules to default security lists](#practice-11-add-security-rules-to-default-security-lists)
 
+[Practice 12: Add compute instances to the VCNs](#practice-12-add-compute-instances-to-the-vcns)
+
+[Practice 13: Testing transit routing through the hub-spoke architecture](#practice-13-testing-transit-routing-through-the-hub-spoke-architecture)
+
 ## Overview
 
 This architecture shows how to implement a hub-spoke network topology in OCI. The hub is a virtual cloud network (VCN) that is connected to your on-premises network, and the spokes are VCNs that peer with the hub and allow you to isolate workloads. This architecture also demonstrates how to include shared services in the hub that the spokes can then use. You can connect your hub VCN and on-premises network via a VPN connection or Oracle FastConnect.
@@ -780,4 +784,65 @@ Security lists consist of two types of rules: egress rules and ingress rules. Eg
 
   These screens should be consistent with those for the other VCNs as well.
 
-# Practice-12: Add compute instances to the VCNs 
+# Practice-12: Add compute instances to the VCNs
+
+Now you will create instances in each of the VCNs. The instances are not a required component of this network architecture, so you will add them using the console instead of Terraform.
+
+- In the **console**, navigate to the **Menu --> Compute --> Instances**
+
+- Click **Create Instance**
+
+- In the **Create Instance Dialog** enter the following:
+
+  - **Name**: instance2
+  - **Availability Domain**: AD-1
+  - **OS Image**: Oracle Linux 7.7
+  - **Instance Type**: Virtual Machine
+  - **Instance Shape**: VM.Standard.E2.1.Micro
+  - **Virtual Cloud Network**: <name of your hub VCN>
+  - **Subnet**: <name of your hub VCN’s compute subnet>
+  - Select **Assign a public IP address**
+  - Leave the default size for the boot volume
+  - Under **Add SSH key**, select **Paste SSH keys**
+    - In the terminal, run the command `cat ~/.ssh/id_rsa.pub`
+
+  ![](media/image78.png)
+
+    - Highlight and copy the key
+    - In the console, paste the key into the **SSH Key** textbox
+
+  ![](media/image79.png)
+
+  - Click **Create**
+
+- Repeat the previous step to launch an instance in each of the remaining VCNs (spoke1, spoke2, and onprem). For the onprem VCN, you will have to change the region to Ashburn. Use the only subnet available in each of these VCNs. Choose the same or different shape (depending on capacity). Name the instances *instance1*, *instance3*, *instance4* in the onprem, spoke1, and spoke2 VCNs, respectively.
+
+  ![](media/image80.png)
+
+  ![](media/image81.png)
+
+# Practice-13: Testing transit routing through the hub-spoke architecture
+
+Once the VCN peering connections are established, and all the related security lists and route table entries are populated, we can do a test through our instances in our VCNs.
+
+Let’s look at the proposed figure at the start of the labs, which shows that the spoke VCNs should have access to the hub VCN, but the spoke VCNs should not be able to talk to each other. Also, the onprem VCN should be able to talk to each of the spoke VCNs in addition to the hub VCN.
+
+- From the terminal, log in to *instance1* in the *onprem* VCN. Use the SSH keys that were used to launch the instances. The default username for Oracle Linux is *opc*.
+
+  ```
+  ssh -i </path to the private key> opc@<PublicIPAddress>
+  ```
+
+- Once logged in, try to ping the private IPs of other three instances running in the hub VCN and spoke VCNs:
+
+  ```
+  ping -c5 10.0.0.X
+
+  ping -c5 10.1.0.X
+
+  ping -c5 10.2.0.X
+  ```
+
+  ![](media/image82.png)
+
+*Congratulations! You have successfully completed this lab!**
