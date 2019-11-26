@@ -26,6 +26,12 @@
 
 [Practice 8: Add dynamic routing gateways to the hub and "on-prem" VCNs](#practice-8-add-dynamic-routing-gateways-to-the-hub-and-on-prem-vcns)
 
+[Practice 9: Add internet gateways to the VCNs](#practice-9-add-internet-gateways-to-the-vcns)
+
+[Practice 10: Add route rules to default route tables](#practice-10-add-route-rules-to-default-route-tables)
+
+[Practice 11: Add security rules to default security lists](#practice-11-add-security-rules-to-default-security-lists)
+
 ## Overview
 
 This architecture shows how to implement a hub-spoke network topology in OCI. The hub is a virtual cloud network (VCN) that is connected to your on-premises network, and the spokes are VCNs that peer with the hub and allow you to isolate workloads. This architecture also demonstrates how to include shared services in the hub that the spokes can then use. You can connect your hub VCN and on-premises network via a VPN connection or Oracle FastConnect.
@@ -518,7 +524,7 @@ These dynamic routing gateways (DRGs) will allow us to create a remote peering c
 - In the *hub-spoke/ashburn* directory, create a new file called *rpc.tf*. Copy and paste the code from step 6 into the file, substituting “us-phoenix-1” for the value of the region argument. Paste the following line underneath the argument *peer_region_name*, but substituting in the OCID you just copied:
 
   ```
-  peer_id = "*<your_rpc_ocid>*"
+  peer_id = "<your_rpc_ocid>"
   ```
 
   Your *hub-spoke/ashburn/rpc.tf* file should look like the following:
@@ -532,3 +538,160 @@ These dynamic routing gateways (DRGs) will allow us to create a remote peering c
   ![](media/image52.png)
 
 # Practice-9: Add internet gateways to the VCNs
+
+An internet gateway is necessary if you want your VCN to be reachable from the Internet. While these gateways are not required for the hub-spoke network topology, we will add them so that you can SSH into any instances you create in these VCNs.
+
+### **STEP 1**: Add an Internet gateway to the hub VCN
+
+- Create a new file in the *hub-spoke* directory and call it *ig.tf*
+
+![](media/image53.png)
+
+- Paste the following code into the file:
+
+  ```
+  resource "oci_core_internet_gateway" "hub-ig" {
+    compartment_id = "${oci_core_vcn.hub.compartment_id}"
+    vcn_id         = "${oci_core_vcn.hub.id}"
+
+    enabled      = true
+    display_name = "hub-internet-gateway"
+  }
+  ```
+  The arguments here are similar to those of the other resources you’ve already created. Here. The “enabled” argument ensures that when the Internet gateway is provisioned, traffic can be routed to and from the Internet.
+
+### **STEP 2**: Add Internet gateways to spoke VCNs
+
+- In the same file, paste and modify the above code to add an Internet gateway to each of the spoke VCNs. Your *ig.tf* file should look similar to the following when you’re done.
+
+  ![](media/image54.png)
+
+### **STEP 3**: Add an Internet gateway to the "on-prem" VCN
+
+- Repeat steps 1 and 2 in the *hub-spoke/ashburn* directory.
+
+  ![](media/image55.png)
+
+### **STEP 4**: Create the Internet gateway
+
+- From both directories, run the command `echo “yes” | terraform apply`. Verify the Internet gateways were created in the console when the command finishes.
+
+  ![](media/image56.png)
+
+  ![](media/image57.png)
+
+  ![](media/image58.png)
+
+  ![](media/image59.png)
+
+  **NOTE**: You will need to look at the **Internet Gateways** page under the **Resources** section of the **Virtual Cloud Network Details** page for each VCN you've created to see all the internet gateways.
+
+# Practice-10: Add route rules to default route tables
+
+This network architecture requires each VCN to have multiple route tables in order to properly route traffic from the different sources to the right destinations. Here, we will add route rules to the default route tables in each VCN to route traffic that originates in its respective VCN.
+
+### **STEP 1**: Add route rules to the hub VCN's default route table
+
+- Create a new file in the *hub-spoke* directory called *routetable.tf*.
+
+  ![](media/image60.png)
+
+- In this new file, copy and paste the following code:
+
+  ```
+  resource "oci_core_default_route_table" "hub_default" {
+    manage_default_resource_id = "${oci_core_vcn.hub_vcn.default_route_table_id}"
+  }
+  ```
+
+  When you create a VCN, it is provisioned with a default route table, security list, and DHCP options. Here, we are creating a Terraform resource to manipulate the hub VCN’s default route table. The second line assigns the OCID of the hub VCN’s default route table to this resource.
+
+- Now we will add route rules. A route table needs route rules in order to enable traffic flow through and out of the VCN. Copy and paste the following code **within the resource block** for the default route table:
+
+  ```
+  route_rules {
+    network_entity_id = "${oci_core_internet_gateway.hub-ig.id}"
+
+    destination_type = "CIDR_BLOCK"
+    destination      = "0.0.0.0/0"
+  }
+  ```
+
+  The destination “0.0.0.0/0” is a special CIDR block that represents any destination. This route rule says that traffic going anywhere out of the VCN will go through the Internet gateway. This may be concerning because we know the CIDR blocks of our other VCNs and don’t want traffic destined for those VCNs to go through the Internet gateway. Don’t worry, VCNs direct traffic according to the most specific applicable route rule in the associated route table, so when we add more route rules to the route table, traffic destined for our other VCNs will not be routed through the Internet gateway.
+
+- Using the above code block as a guide, add route rules to the default route table for routing traffic to the spoke VCNs and the “on-prem” VCN. Match the VCN with its CIDR block. The entity for traffic going to the “on-prem” VCN will be a DRG, and the entity for traffic going to the spoke VCNs will be a local peering gateway. Your code should look similar to the following when you are done:
+
+  ![](media/image61.png)
+
+### **STEP 2**: Add a route table specific to the hub's DRG
+
+- In the *routetable.tf* file, right below the resource for the default route table, add a new route table resource and call it *hub_drg_rt* in Terraform. Add route rules for sending traffic to the respective local peering gateways for spoke 1 and spoke 2. Your resource definition should look similar to the following when you are done:
+
+  ![](media/image62.png)
+
+### **STEP 3**: Attach the new route table to a subnet
+
+- Underneath the route table we just added, add the following code:
+
+  ```
+  resource "oci_core_route_table_attachment" "hub-drg_attachment" {
+    route_table_id = "${oci_core_route_table.hub_drg_rt.id}"
+    subnet_id = "${oci_core_subnet.hub_gateway_subnet.id}"
+  }
+  ```
+
+  This resource tells us which route table we want to associate with which subnet. Here, we want to associate the subnet that will have the dynamic routing gateway with the route table we defined for the DRG.
+
+  ![](media/image63.png)
+
+- Run the command `echo "yes" | terraform apply` to build the resources.
+
+  ![](media/image64.png)
+
+  ![](media/image65.png)
+
+### **STEP 4**: Associate the DRG to the route table
+
+- In the *drg.tf* file, add the following line **within the resource**:
+
+  ```
+  route_table_id = "${oci_core_route_table.hub_drg_rt.id}"
+  ```
+
+  Your code should look like the following:
+
+  ![](media/image66.png)
+
+- Run the command `echo "yes" | terraform apply` to build the association.
+
+### **STEP 5**: Add a route table for the hub's LPGs
+
+- Just like the hub’s DRG needs a route table, the LPGs need their own specific route table and cannot use the hub’s default route table because doing so would create a traffic circuit, which we can’t have. Using the route table definition above as a guide, add a new route table resource to the *routetable.tf* file. This route table only needs one rule, which is to direct traffic destined for the “on-prem” network to the DRG. Your code should look similar to the following when you’re done:
+
+  ![](media/image67.png)
+
+- 38.	Run the command `echo “yes” | terraform apply` to build the new route table. Verify that the route table was built in the OCI console.
+
+  ![](media/image68.png)
+
+  ![](media/image69.png)
+
+### **STEP 6**: Associate the new route table with the LPGs
+
+- 39.	Just like we did with the DRG, we have to specify in the LPG resources which route table we want to use. In the *lpg.tf* file, add a route table ID like you did for the DRG.
+
+  ![](media/image70.png)
+
+  Build the associations with the `echo "yes" | terraform apply`
+
+### **STEP 7**: Add route rules to the other VCNs' default route tables
+
+- Like you did for the hub VCN, create resources for the default route tables in the spoke VCNs and the “on-prem” VCN. You will have to add a *routetable.tf* file to the *hub-spoke/ashburn* directory.
+
+  ![](media/image71.png)
+
+  ![](media/image72.png)
+
+  ![](media/image73.png)
+
+# Practice-11: Add security rules to default security lists
